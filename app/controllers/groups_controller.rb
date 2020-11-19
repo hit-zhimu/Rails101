@@ -1,55 +1,53 @@
 class GroupsController < ApplicationController
-	before_action :authenticate_user!, only: [:new, :create, :edit, :update, :destroy]
-	before_action :find_group_and_check_permission, only:[:edit, :update, :destroy]
-	def index
-		@groups = Group.all
-	end
-	
-	def new 
-		@group = Group.new
-	end
-	
-	def create
-		@group = Group.new(group_params)
-		@group.user = current_user
-		if @group.save
-		  redirect_to groups_path
-		else
-		  render :new
-		end
-	end
-	
-	def show
-	  @group = Group.find(params[:id])
-	end
-	
-	def edit
-	end
-	
-	def update
-	  if @group.update(group_params)
-	    redirect_to groups_path, notice: 'Update Success!'
-	  else
-   	    render :edit
-	  end
-	end
+  before_action :authenticate_user!, only: [:new, :create, :edit, :update, :destroy]
+  before_action :find_group_and_check_permission, only:[:edit, :update, :destroy]
+  def index
+    @groups = Group.all
+  end
 
-	def destroy
-	  @group.destroy
-	  flash[:alert] = 'Group deleted'
-	  redirect_to groups_path
-	end
+  def new
+    @group = Group.new
+  end
 
-	private
+  def create
+    @group = Group.new(group_params)
+    @group.user = current_user
+    if @group.save
+      redirect_to groups_path
+    else
+      render :new
+    end
+  end
 
-	def group_params
- 	  params.require(:group).permit(:title, :description)
-	end
+  def show
+    @group = Group.find(params[:id])
+    @posts = @group.posts.order('created_at DESC')
+  end
 
-	def find_group_and_check_permission
-		@group = Group.find(params[:id])
-		if current_user != @group.user
-			redirect_to root_path, alert: "You`ve no permissions!"
-		end
-	end
+  def edit; end
+
+  def update
+    if @group.update(group_params)
+      redirect_to groups_path, notice: 'Update Success!'
+    else
+      render :edit
+    end
+  end
+
+  def destroy
+    @group.destroy
+    flash[:alert] = 'Group deleted'
+    redirect_to groups_path
+  end
+
+  private
+
+  def group_params
+    params.require(:group).permit(:title, :description)
+  end
+
+  def find_group_and_check_permission
+    @group = Group.find(params[:id])
+    redirect_to root_path, alert: 'You`ve no permissions!' if current_user != @group.user
+  end
 end
